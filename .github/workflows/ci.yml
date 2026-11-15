@@ -1,0 +1,65 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: tests (${{ matrix.os }}, py${{ matrix.python }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python: ["3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: ${{ matrix.python }}
+      # CPU torch keeps the runner install small; the tests use a hashing embedder and a
+      # hand-written 20-product catalog, so no model or dataset is downloaded.
+      - name: Install
+        run: |
+          uv venv
+          uv pip install "torch>=2.4" --index-url https://download.pytorch.org/whl/cpu
+          uv pip install --no-sources -e . pytest anyio
+      - name: Test
+        run: uv run --no-sync pytest -q
+
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.11"
+      - name: Build sdist and wheel
+        run: uv build
+      - name: Install the wheel the way users will (uvx)
+        run: |
+          uvx --index-strategy unsafe-best-match \
+              --extra-index-url https://download.pytorch.org/whl/cpu \
+              --from dist/*.whl catalog-mcp --help
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image
+        run: docker build -t catalog-mcp:ci .
+      - name: CLI runs in the image
+        run: docker run --rm catalog-mcp:ci --help

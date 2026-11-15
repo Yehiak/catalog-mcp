@@ -1,0 +1,29 @@
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+dist/
+build/
+*.egg-info/
+
+# Catalog data and indexes are large and rebuilt by `catalog-mcp build`.
+data/
+*.duckdb
+*.duckdb.wal
+*.faiss
+*.npy
+*.jsonl
+*.jsonl.gz
+*.log
+logs/
+
+# Generated tables (the README has the results); plots in docs/ are kept.
+docs/*.md
+docs/*.json
+
+# Editor and tool settings
+.claude/
+.vscode/
+.idea/
+.env
+docs/cpu/

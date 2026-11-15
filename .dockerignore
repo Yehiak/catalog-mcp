@@ -1,0 +1,13 @@
+.venv
+data
+docs
+eval
+scripts
+tests
+dist
+.git
+.github
+.pytest_cache
+**/__pycache__
+*.duckdb
+*.faiss

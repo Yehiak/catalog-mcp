@@ -1,0 +1,60 @@
+[project]
+name = "catalog-mcp"
+version = "0.1.0"
+description = "MCP server to search, compare and deduplicate products in a real catalog (keyword, semantic and hybrid search over DuckDB + FAISS)."
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+requires-python = ">=3.11,<3.14"
+keywords = ["mcp", "model-context-protocol", "product-search", "duckdb", "faiss", "semantic-search"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    "mcp>=2.3",
+    "pydantic>=2.7",
+    "duckdb>=1.2",
+    "faiss-cpu>=1.8",
+    "numpy>=1.26",
+    "sentence-transformers>=3.0",
+    "torch>=2.4",
+    "huggingface_hub>=0.23",
+    "platformdirs>=4",
+]
+
+[project.scripts]
+catalog-mcp = "catalog_mcp.cli:main"
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+    "matplotlib>=3.8",
+    "anyio>=4.16.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/catalog_mcp"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src/catalog_mcp", "tests", "README.md", "LICENSE"]
+
+# RTX 50-series (Blackwell, sm_120) needs CUDA 12.8+ wheels for local development.
+# Installs from PyPI ignore this and use the default torch wheel.
+[tool.uv.sources]
+torch = { index = "pytorch-cu128", marker = "sys_platform == 'win32' or sys_platform == 'linux'" }
+
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
