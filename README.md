@@ -7,7 +7,8 @@ products from the Appliances and Video Games categories of
 
 Search is keyword (DuckDB full-text BM25), semantic (sentence-transformers + FAISS) or hybrid
 (reciprocal rank fusion of both). The server speaks stdio for desktop clients and Streamable HTTP
-with bearer-token auth for remote use. Install it with one command: `uvx catalog-mcp`.
+with bearer-token auth for remote use. Install it with one command:
+`uv tool install git+https://github.com/Yehiak/catalog-mcp`.
 
 ## Results
 
@@ -117,20 +118,24 @@ so each number includes the full MCP round-trip.
 You need Python 3.11+ and [uv](https://docs.astral.sh/uv/).
 
 ```bash
-# 1. Build the catalog once: downloads ~720 MB of metadata and the embedding model,
+# 1. Install the catalog-mcp command from GitHub (downloads torch the first time: a few minutes).
+uv tool install git+https://github.com/Yehiak/catalog-mcp
+
+# 2. Build the catalog once: downloads ~720 MB of metadata and the embedding model,
 #    then loads DuckDB and builds the indexes (~90 s on a GPU, longer on CPU).
-uvx catalog-mcp build
+catalog-mcp build
 
 # Smaller or different catalog: any category of the dataset works.
-uvx catalog-mcp build --categories Video_Games
+catalog-mcp build --categories Video_Games
 
-# 2. Check what was built.
-uvx catalog-mcp stats
+# 3. Check what was built.
+catalog-mcp stats
 ```
 
 The catalog goes to your user data directory. Set `CATALOG_MCP_HOME` or pass `--data-dir` to put
-it somewhere else. The embedding model is cached by Hugging Face (`HF_HOME`). The first `uvx`
-run also downloads torch, which takes a few minutes; later runs start in seconds.
+it somewhere else. The embedding model is cached by Hugging Face (`HF_HOME`). To update later, run
+`uv tool upgrade catalog-mcp`. To run it without installing, use
+`uvx --from git+https://github.com/Yehiak/catalog-mcp catalog-mcp`.
 
 ### Desktop clients (stdio)
 
@@ -141,8 +146,7 @@ Desktop's `claude_desktop_config.json`, Cursor's `mcp.json`, ...):
 {
   "mcpServers": {
     "catalog": {
-      "command": "uvx",
-      "args": ["catalog-mcp"],
+      "command": "catalog-mcp",
       "env": { "CATALOG_MCP_HOME": "/path/to/catalog" }
     }
   }
@@ -156,8 +160,8 @@ VS Code (`.vscode/mcp.json`) uses `"servers"` instead of `"mcpServers"` and need
 ### Remote use (Streamable HTTP + token)
 
 ```bash
-export CATALOG_MCP_TOKEN=$(uvx catalog-mcp token)
-uvx catalog-mcp serve --transport http --host 0.0.0.0 --port 8000
+export CATALOG_MCP_TOKEN=$(catalog-mcp token)
+catalog-mcp serve --transport http --host 0.0.0.0 --port 8000
 ```
 
 Every request must send `Authorization: Bearer <token>`, except `GET /healthz`. The server
@@ -212,7 +216,7 @@ asyncio.run(main())
 ### Inspect it
 
 ```bash
-npx @modelcontextprotocol/inspector uvx catalog-mcp     # opens the Inspector UI
+npx @modelcontextprotocol/inspector catalog-mcp     # opens the Inspector UI
 ```
 
 ## What the server exposes

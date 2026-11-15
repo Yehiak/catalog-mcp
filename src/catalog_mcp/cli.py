@@ -1,7 +1,7 @@
 """Command line: `catalog-mcp [serve|build|stats]`.
 
 With no subcommand it serves over stdio, which is what MCP desktop clients expect when
-they launch `uvx catalog-mcp`.
+they launch `catalog-mcp`.
 """
 
 from __future__ import annotations
